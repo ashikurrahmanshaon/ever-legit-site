@@ -2,20 +2,75 @@
   'use strict';
 
   var S = window.SITE || {};
+  var root = document.documentElement;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   Array.prototype.forEach.call(document.querySelectorAll('[data-year]'), function (el) {
     el.textContent = new Date().getFullYear();
   });
 
-  /* Mobile menu */
+  /* Header: soft shadow after scrolling, steps aside on the way down, returns on the way up */
+  var header = document.querySelector('.site-header');
+  var lastY = window.scrollY;
+  var queued = false;
+  function onScroll() {
+    var y = window.scrollY;
+    if (header) {
+      header.classList.toggle('is-scrolled', y > 8);
+      if (!root.classList.contains('menu-open')) {
+        if (y > lastY && y > 320) { header.classList.add('is-hidden'); }
+        else if (y < lastY) { header.classList.remove('is-hidden'); }
+      }
+    }
+    lastY = y;
+    queued = false;
+  }
+  window.addEventListener('scroll', function () {
+    if (!queued) { queued = true; window.requestAnimationFrame(onScroll); }
+  }, { passive: true });
+  onScroll();
+
+  /* Menu on small screens */
   var toggle = document.querySelector('.nav-toggle');
   var nav = document.getElementById('site-nav');
+  function setMenu(open) {
+    root.classList.toggle('menu-open', open);
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    if (open && header) { header.classList.remove('is-hidden'); }
+  }
   if (toggle && nav) {
     toggle.addEventListener('click', function () {
-      var open = nav.classList.toggle('is-open');
-      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-      toggle.textContent = open ? 'Close' : 'Menu';
+      setMenu(!root.classList.contains('menu-open'));
     });
+    nav.addEventListener('click', function (event) {
+      if (event.target.closest('a')) { setMenu(false); }
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') { setMenu(false); }
+    });
+  }
+
+  /* Reveal on scroll */
+  var items = Array.prototype.slice.call(document.querySelectorAll('[data-reveal]'));
+  if (items.length && 'IntersectionObserver' in window && !reduce) {
+    root.classList.add('anim');
+    items.forEach(function (el) {
+      var siblings = Array.prototype.filter.call(el.parentNode.children, function (child) {
+        return child.hasAttribute('data-reveal');
+      });
+      var index = siblings.indexOf(el);
+      if (index > 0) { el.style.setProperty('--d', Math.min(index, 8) * 90); }
+    });
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-in');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { rootMargin: '0px', threshold: 0.06 });
+    items.forEach(function (el) { observer.observe(el); });
   }
 
   /* Contact form: opens WhatsApp or the visitor's email app with the message filled in */
