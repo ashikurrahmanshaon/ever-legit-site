@@ -6,15 +6,16 @@ Plain HTML, CSS and JavaScript. There is no build step, so it can be hosted as s
 ## What is inside
 
 ```
-index.html        Home: the three businesses, Invoice-Gen.net, how we work, direct contact
-commerce.html     E-commerce and import-export
-software.html     SaaS and custom software
-agency.html       Digital marketing
-work.html         Invoice-Gen.net, our own product
-about.html        About the company, principles and standards
-contact.html      WhatsApp, email, phone and the brief form
-privacy.html      Privacy notice
-404.html          Shown for missing pages
+index.html            Home: the three businesses, Invoice-Gen.net, how we work, direct contact
+commerce/index.html   E-commerce and import-export        everlegit.com/commerce/
+software/index.html   SaaS and custom software            everlegit.com/software/
+agency/index.html     Digital marketing                   everlegit.com/agency/
+work/index.html       Invoice-Gen.net, our own product    everlegit.com/work/
+about/index.html      About the company                   everlegit.com/about/
+contact/index.html    WhatsApp, email, phone, brief form  everlegit.com/contact/
+privacy/index.html    Privacy notice                      everlegit.com/privacy/
+404.html              Shown for missing pages
+commerce.html, software.html, ...   Old addresses. Each one only forwards to its new address.
 sitemap.xml, robots.txt
 assets/css/style.css     All styles and motion
 assets/js/config.js      Email and WhatsApp number used by the contact form
@@ -47,12 +48,13 @@ automatically for visitors whose device asks for reduced motion.
 
 The site lives in the GitHub repository `ashikurrahmanshaon/ever-legit-site` and is served on
 `everlegit.com`. The host caches the stylesheet and scripts for a week, so the pages link them
-with a version number (`style.css?v=3`). When you change `style.css`, `main.js` or `config.js`,
+with a version number (`style.css?v=4`). When you change `style.css`, `main.js` or `config.js`,
 raise that number in every page so visitors get the new file.
 
 ## Preview on your computer
 
-Open `index.html` in a browser. No server is needed.
+Open `index.html` in a browser. No server is needed: when the files are opened from a folder,
+the script points the page links at each folder's `index.html`.
 
 ## Colours
 
