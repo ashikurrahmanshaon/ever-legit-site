@@ -2,42 +2,8 @@
   'use strict';
 
   var S = window.SITE || {};
-  function val(key) {
-    return String(S[key] == null ? '' : S[key]).trim();
-  }
-  function each(selector, fn) {
-    Array.prototype.forEach.call(document.querySelectorAll(selector), fn);
-  }
 
-  /* Company details from assets/js/config.js */
-  var toHref = {
-    email: function (v) { return 'mailto:' + v; },
-    phone: function (v) { return 'tel:' + v.replace(/[^+\d]/g, ''); },
-    whatsapp: function (v) { return 'https://wa.me/' + v.replace(/\D/g, ''); },
-    storeUrl: function (v) { return v; }
-  };
-  each('[data-site]', function (el) {
-    var v = val(el.getAttribute('data-site'));
-    if (v) { el.textContent = v; el.classList.remove('ph'); }
-  });
-  each('[data-site-href]', function (el) {
-    var key = el.getAttribute('data-site-href');
-    var v = val(key);
-    if (v && toHref[key]) { el.setAttribute('href', toHref[key](v)); }
-  });
-  each('[data-site-show]', function (el) {
-    if (val(el.getAttribute('data-site-show'))) { el.hidden = false; }
-  });
-  each('[data-site-unset]', function (el) {
-    if (val(el.getAttribute('data-site-unset'))) { el.hidden = true; }
-  });
-
-  /* A placeholder that has been replaced by hand loses its highlight */
-  each('.ph', function (el) {
-    if (!/^\s*\[/.test(el.textContent)) { el.classList.remove('ph'); }
-  });
-
-  each('[data-year]', function (el) {
+  Array.prototype.forEach.call(document.querySelectorAll('[data-year]'), function (el) {
     el.textContent = new Date().getFullYear();
   });
 
@@ -52,7 +18,7 @@
     });
   }
 
-  /* Contact form: opens the visitor's email app with the message filled in */
+  /* Contact form: opens WhatsApp or the visitor's email app with the message filled in */
   var form = document.getElementById('contact-form');
   if (form) {
     var select = form.elements.business;
@@ -63,7 +29,6 @@
       });
     }
 
-    var formError = document.getElementById('form-error');
     var required = [
       { name: 'name', message: 'Enter your name.' },
       { name: 'message', message: 'Write your message.' }
@@ -102,20 +67,19 @@
       });
       if (firstBad) { firstBad.focus(); return; }
 
-      var to = val('email');
-      if (!to) {
-        formError.textContent = 'This form is not connected yet. Add your email address in assets/js/config.js.';
-        formError.hidden = false;
+      var name = form.elements.name.value.trim();
+      var message = form.elements.message.value.trim();
+      var channel = event.submitter && event.submitter.getAttribute('data-channel');
+
+      if (channel === 'whatsapp' && S.whatsapp) {
+        var text = '[' + select.value + '] ' + message + '\n\n' + name;
+        window.location.href = 'https://wa.me/' + S.whatsapp + '?text=' + encodeURIComponent(text);
         return;
       }
-      formError.hidden = true;
-
-      var name = form.elements.name.value.trim();
       var subject = '[' + select.value + '] Message from ' + name;
-      var body = form.elements.message.value.trim() + '\n\n' + name;
-      window.location.href = 'mailto:' + to +
+      window.location.href = 'mailto:' + S.email +
         '?subject=' + encodeURIComponent(subject) +
-        '&body=' + encodeURIComponent(body);
+        '&body=' + encodeURIComponent(message + '\n\n' + name);
     });
   }
 })();
