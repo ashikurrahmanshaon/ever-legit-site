@@ -6,31 +6,29 @@ Plain HTML, CSS and JavaScript. There is no build step, so it can be hosted as s
 ## What is inside
 
 ```
-index.html        Home: the three businesses, ventures, company record, direct contact
+index.html        Home: the three businesses, Invoice-Gen.net, how we work, direct contact
 commerce.html     E-commerce and import-export
 software.html     SaaS and custom software
 agency.html       Digital marketing
-work.html         Ever Legit's own products and ventures
+work.html         Invoice-Gen.net, our own product
 about.html        About the company, principles and standards
 contact.html      WhatsApp, email, phone and the brief form
 privacy.html      Privacy notice
 404.html          Shown for missing pages
 sitemap.xml, robots.txt
-assets/css/style.css     All styles
+assets/css/style.css     All styles and motion
 assets/js/config.js      Email and WhatsApp number used by the contact form
-assets/js/main.js        Menu and contact form
+assets/js/main.js        Header, menu, scroll reveals and contact form
 assets/fonts/            Red Hat Display and Red Hat Text (SIL Open Font License, see OFL.txt)
 assets/img/              Logo files, favicon, social-card.png
 ```
 
-## Company details used on the site
+## Contact details used on the site
 
 | Detail | Value |
 | --- | --- |
-| Legal name | Ever Legit LLC |
-| Wyoming Filing ID | 2026-001921880 |
-| Formed | March 17, 2026 |
-| Principal office | 1309 Coffeen Avenue, STE 19438, Sheridan, WY 82801, USA |
+| Company | Ever Legit LLC |
+| Address | 1309 Coffeen Avenue, STE 19438, Sheridan, WY 82801, USA |
 | Email | info@everlegit.com |
 | Phone and WhatsApp | +1 (307) 424-2312 |
 
@@ -40,15 +38,21 @@ The contact form reads the email address and WhatsApp number from `assets/js/con
 The contact form has no backend. It opens WhatsApp or the visitor's email app with the message
 filled in, and stores nothing.
 
-## Preview on your computer
+## Motion
 
-Open `index.html` in a browser. No server is needed.
+Animations live in `assets/css/style.css` under the "motion" heading. They are switched off
+automatically for visitors whose device asks for reduced motion.
 
 ## Updating the live site
 
 The site lives in the GitHub repository `ashikurrahmanshaon/ever-legit-site` and is served on
-`everlegit.com`. After changing files in the repository, redeploy the site in the hosting panel
-and flush the CDN cache so visitors get the new version.
+`everlegit.com`. The host caches the stylesheet and scripts for a week, so the pages link them
+with a version number (`style.css?v=3`). When you change `style.css`, `main.js` or `config.js`,
+raise that number in every page so visitors get the new file.
+
+## Preview on your computer
+
+Open `index.html` in a browser. No server is needed.
 
 ## Colours
 
