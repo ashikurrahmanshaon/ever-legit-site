@@ -4,26 +4,40 @@
   var S = window.SITE || {};
   var root = document.documentElement;
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var canObserve = 'IntersectionObserver' in window;
+  function each(list, fn) { Array.prototype.forEach.call(list, fn); }
 
-  Array.prototype.forEach.call(document.querySelectorAll('[data-year]'), function (el) {
+  each(document.querySelectorAll('[data-year]'), function (el) {
     el.textContent = new Date().getFullYear();
   });
 
-  /* Header: soft shadow after scrolling, steps aside on the way down, returns on the way up */
+  /* Opened straight from a folder on a computer: point page links at index.html */
+  if (window.location.protocol === 'file:') {
+    each(document.querySelectorAll('a[href]'), function (link) {
+      var href = link.getAttribute('href');
+      if (/^(https?:|mailto:|tel:|#)/.test(href)) { return; }
+      var parts = href.match(/^([^?#]*)(.*)$/);
+      if (/\/$/.test(parts[1])) { link.setAttribute('href', parts[1] + 'index.html' + parts[2]); }
+    });
+  }
+
+  /* Header: soft shadow after scrolling, steps aside on the way down, returns on the way up.
+     It waits for a real change of direction, so small scroll jitters do not make it flicker. */
   var header = document.querySelector('.site-header');
-  var lastY = window.scrollY;
+  var lastY = Math.max(window.scrollY, 0);
+  var travelled = 0;
   var queued = false;
   function onScroll() {
-    var y = window.scrollY;
-    if (header) {
-      header.classList.toggle('is-scrolled', y > 8);
-      if (!root.classList.contains('menu-open')) {
-        if (y > lastY && y > 320) { header.classList.add('is-hidden'); }
-        else if (y < lastY) { header.classList.remove('is-hidden'); }
-      }
-    }
+    var y = Math.max(window.scrollY, 0);
+    var delta = y - lastY;
     lastY = y;
     queued = false;
+    if (!header) { return; }
+    header.classList.toggle('is-scrolled', y > 8);
+    if (root.classList.contains('menu-open')) { return; }
+    travelled = (delta > 0) === (travelled > 0) ? travelled + delta : delta;
+    if (y < 120 || travelled < -24) { header.classList.remove('is-hidden'); }
+    else if (travelled > 48) { header.classList.add('is-hidden'); }
   }
   window.addEventListener('scroll', function () {
     if (!queued) { queued = true; window.requestAnimationFrame(onScroll); }
@@ -49,28 +63,45 @@
     document.addEventListener('keydown', function (event) {
       if (event.key === 'Escape') { setMenu(false); }
     });
+    window.addEventListener('pageshow', function () { setMenu(false); });
   }
 
-  /* Reveal on scroll */
+  /* Reveal on scroll. Once an element has arrived it is handed back to its own styles,
+     so hover and tap effects are not slowed down by the reveal timing. */
   var items = Array.prototype.slice.call(document.querySelectorAll('[data-reveal]'));
-  if (items.length && 'IntersectionObserver' in window && !reduce) {
+  if (items.length && canObserve && !reduce) {
     root.classList.add('anim');
     items.forEach(function (el) {
       var siblings = Array.prototype.filter.call(el.parentNode.children, function (child) {
         return child.hasAttribute('data-reveal');
       });
       var index = siblings.indexOf(el);
-      if (index > 0) { el.style.setProperty('--d', Math.min(index, 8) * 90); }
+      if (index > 0) { el.style.setProperty('--d', Math.min(index, 5) * 60); }
     });
     var observer = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('is-in');
-          observer.unobserve(entry.target);
-        }
+        if (!entry.isIntersecting) { return; }
+        var el = entry.target;
+        var wait = (parseFloat(el.style.getPropertyValue('--d')) || 0) + 1300;
+        observer.unobserve(el);
+        el.classList.add('is-in');
+        window.setTimeout(function () {
+          el.removeAttribute('data-reveal');
+          el.style.removeProperty('--d');
+        }, wait);
       });
-    }, { rootMargin: '0px', threshold: 0.06 });
+    }, { rootMargin: '0px', threshold: 0.01 });
     items.forEach(function (el) { observer.observe(el); });
+  }
+
+  /* Looping motion rests while it is off screen */
+  if (canObserve && !reduce) {
+    var rest = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        entry.target.classList.toggle('is-paused', !entry.isIntersecting);
+      });
+    }, { rootMargin: '80px' });
+    each(document.querySelectorAll('.art, .marquee, .seal'), function (el) { rest.observe(el); });
   }
 
   /* Contact form: opens WhatsApp or the visitor's email app with the message filled in */
@@ -79,7 +110,7 @@
     var select = form.elements.business;
     var asked = new URLSearchParams(window.location.search).get('business');
     if (asked) {
-      Array.prototype.forEach.call(select.options, function (option) {
+      each(select.options, function (option) {
         if (option.value.toLowerCase() === asked.toLowerCase()) { select.value = option.value; }
       });
     }
